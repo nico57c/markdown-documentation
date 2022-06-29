@@ -1,0 +1,10 @@
+{
+  "name": "doc",
+  "version": "1.0.0",
+  "scripts": {
+    "start-doc": "./node_modules/http-server/bin/http-server -c-1 -a 127.0.0.1 -p 8079"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}

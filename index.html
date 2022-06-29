@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Development Documentation - Example</title>
+    <link id="linkstyle" rel="stylesheet" href="/styles/markdown7.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/styles/default.min.css">
+</head>
+<body>
+    <style>
+        body {
+            padding-top: 3em !important;
+            margin-top: 0 !important;
+        }
+
+        details summary {
+            cursor: pointer !important;
+        }
+
+        #theming {
+            width: 300px !important;
+            margin: 0 !important;
+            position: fixed !important;
+            left: 5px;
+            top: 5px;
+            font-size: 12px !important;
+            font-family: arial, sans-serif !important;
+            background-color: #F5F5F5;
+            color: dimgrey !important;
+            padding: 5px;
+            z-index: 999 !important;
+            display: flex;
+            flex: 1;
+        }
+
+        #theming>label {
+            padding-left: 10px;
+            padding-right: 10px;
+            margin: auto;
+        }
+
+        #theming>select {
+            margin: 0 !important;
+            padding: 0 !important;
+            flex: 1;
+            display: flex;
+        }
+
+        @media print {
+            img { max-width: 10cm !important; }
+            @page:right {
+                @bottom-center {
+                    content: "Page " counter(page) " of " counter(pages);
+                }
+            }
+            @page:left {
+                @bottom-center {
+                    content: "Page " counter(page) " of " counter(pages);
+                }
+            }
+
+            #theming {
+                display: none !important;
+            }
+
+            body {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+        }
+    </style>
+    <div id="theming">
+        <label for="themes">Select Theming</label>
+        <select id="themes">
+            <option value="/styles/markdown-alt.css">markdown-alt</option>
+            <option value="/styles/markdown1.css">markdown-1</option>
+            <option value="/styles/markdown2.css">markdown-2</option>
+            <option value="/styles/markdown3.css">markdown-3</option>
+            <option value="/styles/markdown4.css">markdown-4</option>
+            <option value="/styles/markdown5.css">markdown-5</option>
+            <option value="/styles/markdown6.css">markdown-6</option>
+            <option value="/styles/markdown7.css" selected>markdown-7</option>
+            <option value="/styles/markdown8.css">markdown-8</option>
+            <option value="/styles/markdown9.css">markdown-9</option>
+            <option value="/styles/markdown10.css">markdown-10</option>
+            <option value="/styles/forghorn.css">forghorn</option>
+            <option value="/styles/screen.css">screen</option>
+            <option value="/styles/swiss.css">swiss</option>
+        </select>
+    </div>
+    <script>
+        var linkstyles = document.getElementById("linkstyle");
+        var themes = document.getElementById("themes");
+
+        themes.onchange = function (e) {
+            linkstyles.href = themes.value;
+        }
+    </script>
+
+    <div id="content"></div>
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Set default language option
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if(lang === '') lang = 'javascript';
+                return hljs.highlight(code, {language: lang}).value;
+            }
+        });
+
+        function readTextFile(file, callback) {
+            const headers = new Headers();
+            headers.append('pragma', 'no-cache');
+            headers.append('cache-control', 'no-cache');
+
+            const rawFile = new Request(file);
+            fetch(rawFile, {method: 'GET', headers: headers})
+                .then(response => {
+                    if(response.status === 200 || response.status === 0) {
+                        response.text().then(text => {
+                            const filenameRe = new RegExp('([a-zA-Z0-9 _-]*\.*)');
+                            const pathRe = new RegExp('([.a-zA-Z0-9/_-]*)\/', 'ig');
+                            const newPath = pathRe.exec(file);
+                            callback(text, newPath[0] && newPath[0] !== '/' ? newPath[0] : '', filenameRe.exec(file)[0]);
+                        })
+                    }
+                });
+        }
+
+        function openFileInNewTab(path) {
+            window.open(path);
+        }
+
+        function loadNewContent(path) {
+            if(path.endsWith('.md')) {
+                readTextFile(path, getMarkdownContent);
+            } else {
+                openFileInNewTab(path);
+            }
+        }
+
+        function getMarkdownContent(markdownContent, path, filename) {
+            console.log(path, filename);
+            console.log(markdownContent);
+            markdownContent = markdownContent.replaceAll(/]\((?!http|ftp|ssh|git|file)(.*)\)/ig, ']\(javascript\:loadNewContent\(\'' + path + '$1\'))');
+            markdownContent = markdownContent.replaceAll('src="', 'src="' + path);
+            console.log(markdownContent);
+            document.getElementById('content').innerHTML = marked.parse(markdownContent);
+        }
+
+        function downloadFile(appType, filename, contentFile, options = {charset: 'UTF-8'}) {
+            let link = document.createElement('a');
+            link.download = filename;
+            link.href = 'data:' + appType + ';charset=' + options.charset + ',' + contentFile;
+            link.click();
+        }
+
+        readTextFile('/index.md', getMarkdownContent);
+    </script>
+</body>
+</html>
